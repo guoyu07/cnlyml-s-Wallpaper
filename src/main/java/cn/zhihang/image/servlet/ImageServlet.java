@@ -1,15 +1,20 @@
 package cn.zhihang.image.servlet;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.sf.json.JSONArray;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cn.zhihang.image.domain.Image;
 import cn.zhihang.image.service.ImageService;
 import cn.zhihang.image.util.DrawImage;
 
@@ -35,16 +40,22 @@ public class ImageServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-       process(request, response);
+       try {
+        process(request, response);
+    } catch (SQLException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+    }
     }
     
-    private void process(HttpServletRequest request, HttpServletResponse response){
+    private void process(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException{
         if(request.getParameterMap().size() == 0){
             return;
         }
         
         if(request.getParameter("getImage") != null){
-            
+            List<Image> images = imageService.getImageList(40);
+            response.getWriter().println(JSONArray.fromObject(images).toString());
         } else if(request.getParameter("getSmallImage") != null){
             String imageName = request.getParameter("getSmaillImage");
             Integer w = null, h = null;

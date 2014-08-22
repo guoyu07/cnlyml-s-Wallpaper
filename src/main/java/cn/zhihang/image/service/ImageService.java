@@ -1,24 +1,25 @@
 package cn.zhihang.image.service;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import cn.zhihang.image.dao.ImageDao;
 import cn.zhihang.image.domain.Image;
-import cn.zhihang.image.util.C3P0ConnentionProvider;
 
 /**
  * 图片处理Service
  * @author cnlyml
  * @date 2014-8-20
  */
+@Service
 public class ImageService {
+    @Autowired
+    private ImageDao imageDao;
     
     private static Logger logger = LoggerFactory.getLogger(ImageService.class);
     
@@ -30,28 +31,12 @@ public class ImageService {
      */
     public List<Image> getImageList(int num) throws SQLException{
         
-        Connection conn = C3P0ConnentionProvider.getConnection();
-        Statement st = conn.createStatement();
-        String sql = "SELECT *" +
-        		"FROM `image` AS t1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(id) FROM `image`)-(SELECT MIN(id) FROM" +
-        		"`image`))+(SELECT MIN(id) FROM `image`)) AS id) AS t2 WHERE t1.id >= t2.id" +
-        		"ORDER BY t1.id LIMIT "+num+";";
-        
-        ResultSet rs = st.executeQuery(sql);
-        List<Image> list = new ArrayList<Image>();
-        
-        while(rs.next()){
-            Image image = new Image();
-            image.setId(rs.getInt("id"));
-            image.setImage_name(rs.getString("image_name"));
-            image.setImage_md5(rs.getString("image_md5"));
-            image.setImage_size(rs.getLong("image_size"));
-            
-            list.add(image);
+        if(num > 1000 || num < 0){
+            logger.warn("num超出界限...");
+            return null;
         }
         
-        
-        return list;
+        return imageDao.getImageList(num);
     }
     
     /**
